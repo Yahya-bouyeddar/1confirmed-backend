@@ -29,7 +29,7 @@ import { fetchTemplates1Confirmed } from "../services/confirmedApi.js";
 // };
 export const getTemplates = async (req, res) => {
   try {
-    const templates = await fetchTemplates1Confirmed();
+    const templates = await fetchTemplates1Confirmed(req.user.languageId);
     console.dir(templates.data[0], { depth: null });// ⬅️ Ajoute ceci pour voir les vrais ID
     
     res.status(200).json(templates);

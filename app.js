@@ -8,6 +8,7 @@ import templateRoutes from './routes/template.routes.js'
 import creditRoutes from './routes/credits.routes.js';
 import languageRoutes from './routes/language.routes.js';
 import dashboardRoutes from "./routes/dashboard.routes.js";
+import userRoutes from './routes/user.routes.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(express.json()); // Pour lire les données JSON envoyées dans les requ�
 
 // 🛣️ Routes de l'API (on les ajoutera bientôt ici)
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/clients", clientRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/templates", templateRoutes);

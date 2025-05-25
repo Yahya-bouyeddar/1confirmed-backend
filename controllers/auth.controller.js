@@ -39,7 +39,6 @@ export const register = async (req, res) => {
 // 🔐 Fonction : Connexion
 export const login = async (req, res) => {
   const { email, password } = req.body;
-  console.log("sf")
 
   try {
     // Trouve l'utilisateur
@@ -65,6 +64,9 @@ export const login = async (req, res) => {
         id: user.id,
         email: user.email,
         agencyName: user.agencyName,
+        languageId: user.languageId,
+        confirmedToken: user.confirmedToken,
+        credits: user.credits,
       },
     });
   } catch (error) {

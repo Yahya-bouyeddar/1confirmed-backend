@@ -3,6 +3,26 @@ import axios from "axios";
 const API_BASE_URL = "https://1confirmed.com/api/v1";
 const confirmedToken = process.env.CONFIRMED_TOKEN;
 
+export const fetchCredits1Confirmed = async () => {
+  try {
+    const response = await axios.get("https://1confirmed.com/api/v1/credits", {
+      headers: {
+        Authorization: `Bearer ${confirmedToken}`,
+        Accept: "application/json",
+      },
+    });
+   console.log(response.data.data);
+   
+    return response.data; // Exemple : { credits: 100 }
+  } catch (error) {
+    console.error(
+      "Erreur récupération crédits 1Confirmed:",
+      error.response?.data || error.message
+    );
+    throw new Error("Failed to fetch credits from 1Confirmed");
+  }
+};
+
 // Helper to format phone number
 const formatPhoneNumber = (phone) => {
   // Remove any non-digit characters
@@ -59,11 +79,18 @@ export const sendMessage1Confirmed = async (payload) => {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
       const apiError = error.response.data;
-      console.error("❌ 1Confirmed API Error:", JSON.stringify({
-        status: error.response.status,
-        data: apiError,
-        requestPayload: formattedPayload,
-      }, null, 2));
+      console.error(
+        "❌ 1Confirmed API Error:",
+        JSON.stringify(
+          {
+            status: error.response.status,
+            data: apiError,
+            requestPayload: formattedPayload,
+          },
+          null,
+          2
+        )
+      );
 
       if (error.response.status === 401) {
         throw new Error("Invalid or expired 1Confirmed API token");
@@ -90,11 +117,12 @@ export const sendMessage1Confirmed = async (payload) => {
   }
 };
 
-export const fetchTemplates1Confirmed = async () => {
+export const fetchTemplates1Confirmed = async (languageId) => {
   try {
+    console.log({languageId})
     const response = await axios.get(`${API_BASE_URL}/templates`, {
       params: {
-        language_id: 1,
+        language_id: languageId,
         is_broadcast: 0,
       },
       headers: {

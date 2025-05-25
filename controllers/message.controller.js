@@ -1,155 +1,169 @@
 // controllers/message.controller.js
 import { PrismaClient } from "@prisma/client";
-import { sendMessage1Confirmed, fetchTemplates1Confirmed } from "../services/confirmedApi.js";
+import {
+  sendMessage1Confirmed,
+  fetchTemplates1Confirmed,
+} from "../services/confirmedApi.js";
+import axios from "axios";
 
 const prisma = new PrismaClient();
-
+const confirmedToken = process.env.CONFIRMED_TOKEN;
 export const sendMessage = async (req, res) => {
-  // Log the entire request body
   console.log("📨 Received request body:", JSON.stringify(req.body, null, 2));
+
+  const { phone, templateId,countryId, data, globalData, catchData } =
+    req.body;
+
   
-  const { phone, templateId, languageId, data, globalData, catchData } = req.body;
+
   const userId = req.user.id;
+  const languageId = req.user.languageId || 1;
+  let template_account_flow_id =null
+  const templateAccountIdRes = await axios.get(`https://1confirmed.com/api/v1/template/accounts`, {
+        headers: { Authorization: `Bearer ${confirmedToken}` },
+        params: {
+          template_id: templateId
+        },
+      });
+      if (templateAccountIdRes.data.data.length > 0){
+        template_account_flow_id =  templateAccountIdRes.data.data.find((item) => item.country.id === countryId)?.template_account_flow_id
+      }
+      if (!template_account_flow_id) {
+        template_account_flow_id = templateAccountIdRes.data.data[0]?.template_account_flow_id;
+      }
 
-  // Log the extracted values
-  console.log("📱 Phone:", phone);
-  console.log("📋 Template ID:", templateId);
-  console.log("🌐 Language ID:", languageId);
-  console.log("📄 Template Data:", JSON.stringify(data, null, 2));
-
-  // Basic validation
-  if (!phone) {
-    return res.status(400).json({ message: "Le numéro de téléphone est requis." });
-  }
-  if (!templateId) {
-    return res.status(400).json({ message: "L'ID du template est requis." });
+  if (!phone || !templateId) {
+    return res
+      .status(400)
+      .json({ message: "Téléphone et ID du template sont requis." });
   }
 
   try {
-    // Get template details to validate required variables
-    const templatesResponse = await fetchTemplates1Confirmed();
-    const template = templatesResponse.data.find(t => t.id === parseInt(templateId));
-    
+    const templatesResponse = await fetchTemplates1Confirmed(languageId);
+    const template = templatesResponse.data.find(
+      (t) => t.id === parseInt(templateId)
+    );
+
     if (!template) {
       return res.status(400).json({ message: "Template non trouvé." });
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
-    // Validate global variables
     const globalVariables = {};
-    if (template.global_variables && template.global_variables.length > 0) {
+    if (template.global_variables?.length) {
       for (const variable of template.global_variables) {
         const value = globalData?.[variable.variable];
         if (!value) {
-          return res.status(400).json({ 
-            message: `La variable globale ${variable.name} (${variable.variable}) est requise.` 
+          return res.status(400).json({
+            message: `La variable globale ${variable.name} (${variable.variable}) est requise.`,
           });
         }
         globalVariables[variable.variable] = value;
       }
     }
 
-    // Validate catch data
     const catchVariables = {};
-    if (template.catch_data && template.catch_data.length > 0) {
+    if (template.catch_data?.length) {
       for (const field of template.catch_data) {
-        const value = catchData?.[field.name.toLowerCase()];
+        const key = field.name.toLowerCase();
+        const value = catchData?.[key];
         if (!value) {
-          return res.status(400).json({ 
-            message: `Le champ ${field.name} est requis.` 
-          });
+          return res
+            .status(400)
+            .json({ message: `Le champ ${field.name} est requis.` });
         }
-        catchVariables[field.name.toLowerCase()] = value;
+        catchVariables[key] = value;
       }
     }
 
-    // Combine all variables
     const combinedData = {
       ...data,
       ...globalVariables,
-      ...catchVariables
+      ...catchVariables,
     };
 
-    // Simplified payload - since template variables are handled by frontend
     const payload = {
-      phone: phone,
+      phone,
       template_id: parseInt(templateId),
-      template_account_flow_id: parseInt(templateId),
-      language_id: parseInt(languageId || user.languageId || 1),
+      template_account_flow_id: parseInt(template_account_flow_id),
+      language_id:languageId,
       name: user.agencyName || "Agence Immobilière",
-      data: data || {}, // Use data as-is since it's prepared by frontend
+      data:combinedData,
     };
 
-    console.log("⏳ Envoi du message à 1Confirmed avec payload:", JSON.stringify(payload, null, 2));
+    console.log("⏳ Envoi à 1Confirmed:", JSON.stringify(payload, null, 2));
 
     const apiResponse = await sendMessage1Confirmed(payload);
-    console.log("✅ Réponse de 1Confirmed:", JSON.stringify(apiResponse, null, 2));
 
     const savedMessage = await prisma.message.create({
       data: {
         phone,
         templateId: String(templateId),
-        languageId: String(languageId || user.languageId || 1),
-        dataJson: JSON.stringify(data),
-        status: apiResponse?.status || "pending",
+        languageId: String(payload.language_id),
+        dataJson: JSON.stringify(combinedData),
+        status: 'delivered',
         userId,
       },
     });
 
-    res.status(200).json({ 
-      success: true,
-      message: savedMessage, 
-      response: apiResponse 
-    });
+    res
+      .status(200)
+      .json({ success: true, message: savedMessage, response: apiResponse });
   } catch (error) {
     console.error("❌ Erreur sendMessage:", error.message);
-    
-    // Log additional error details
     if (error.response?.data) {
-      console.error("API Error Details:", JSON.stringify(error.response.data, null, 2));
+      console.error(
+        "API Error Details:",
+        JSON.stringify(error.response.data, null, 2)
+      );
     }
 
-    if (error.message.includes('template_account_flow_id is required')) {
-      return res.status(400).json({ message: "ID du template manquant ou invalide." });
-    }
-    if (error.message.includes('data object with template variables')) {
-      return res.status(400).json({ message: "Variables du template manquantes ou invalides." });
-    }
-    if (error.message.includes('recipient phone number')) {
-      return res.status(400).json({ message: "Numéro de téléphone manquant ou invalide." });
-    }
-    if (error.message.includes('Invalid or expired')) {
-      return res.status(401).json({ message: "Token 1Confirmed invalide ou expiré." });
-    }
-    if (error.message.includes('Invalid request:')) {
-      return res.status(400).json({ 
-        message: error.message,
-        details: error.response?.data 
-      });
+    const knownErrors = [
+      {
+        match: "template_account_flow_id is required",
+        message: "ID du template manquant ou invalide.",
+      },
+      {
+        match: "data object with template variables",
+        message: "Variables du template manquantes ou invalides.",
+      },
+      {
+        match: "recipient phone number",
+        message: "Numéro de téléphone manquant ou invalide.",
+      },
+      {
+        match: "Invalid or expired",
+        message: "Token 1Confirmed invalide ou expiré.",
+      },
+    ];
+
+    for (const err of knownErrors) {
+      if (error.message.includes(err.match)) {
+        return res.status(400).json({ message: err.message });
+      }
     }
 
-    res.status(500).json({ 
-      message: "Erreur lors de l'envoi du message.", 
+    res.status(500).json({
+      message: "Erreur lors de l'envoi du message.",
       error: error.message,
-      details: error.response?.data
     });
   }
 };
 
 export const getMessages = async (req, res) => {
   const userId = req.user.id;
-
   try {
     const messages = await prisma.message.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
       include: { client: true },
     });
-
     res.status(200).json(messages);
   } catch (error) {
     console.error("Erreur getMessages:", error);
-    res.status(500).json({ message: "Erreur lors de la récupération des messages." });
+    res
+      .status(500)
+      .json({ message: "Erreur lors de la récupération des messages." });
   }
 };
