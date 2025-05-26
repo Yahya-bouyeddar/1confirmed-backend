@@ -25,15 +25,20 @@ export const fetchCredits1Confirmed = async () => {
 
 // Helper to format phone number
 const formatPhoneNumber = (phone) => {
-  // Remove any non-digit characters
   const digits = phone.replace(/\D/g, "");
+  // console.log({digits});
+  
 
-  // // Add country code if not present
   // if (!digits.startsWith('+212')) {
+  //   if (digits.startsWith('0')) {
+  //     // Remove leading zero
+  //     return `+212${digits.slice(1)}`;
+  //   }
   //   return `+212${digits}`;
   // }
   return digits;
 };
+
 
 export const sendMessage1Confirmed = async (payload) => {
   // Validate required fields
@@ -48,7 +53,7 @@ export const sendMessage1Confirmed = async (payload) => {
   if (!payload.phone) {
     throw new Error("recipient phone number (to) is required");
   }
-
+console.log({phoneNumber :formatPhoneNumber(payload.phone)})
   // Format the payload
   const formattedPayload = {
     ...payload,
@@ -76,8 +81,7 @@ export const sendMessage1Confirmed = async (payload) => {
     return response.data;
   } catch (error) {
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
+    
       const apiError = error.response.data;
       console.error(
         "❌ 1Confirmed API Error:",
@@ -106,11 +110,9 @@ export const sendMessage1Confirmed = async (payload) => {
         `1Confirmed API error: ${apiError.message || "Unknown error"}`
       );
     } else if (error.request) {
-      // The request was made but no response was received
       console.error("❌ No response from 1Confirmed API:", error.request);
       throw new Error("No response from 1Confirmed API - please try again");
     } else {
-      // Something happened in setting up the request
       console.error("❌ Error setting up 1Confirmed request:", error.message);
       throw new Error("Failed to send request to 1Confirmed");
     }

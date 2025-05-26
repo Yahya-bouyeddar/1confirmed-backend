@@ -1,17 +1,30 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
+const formatPhoneNumber = (phone) => {
+  const digits = phone.replace(/\D/g, "");
 
+  if (!digits.startsWith('+212')) {
+    if (digits.startsWith('0')) {
+      // Remove leading zero
+      return `+212${digits.slice(1)}`;
+    }
+    return `+212${digits}`;
+  }
+  return digits;
+};
 // ➕ Ajouter un client
 export const createClient = async (req, res) => {
   const { name, phone,email, notes } = req.body;
   const userId = req.user.id;
+  console.log(formatPhoneNumber(phone));
+  
 
   try {
     const client = await prisma.client.create({
       data: {
         name,
         email,
-        phone,
+        phone:formatPhoneNumber(phone),
         notes,
         userId,
       },
