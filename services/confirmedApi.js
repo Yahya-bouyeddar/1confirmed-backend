@@ -13,7 +13,7 @@ export const fetchCredits1Confirmed = async () => {
     });
    console.log(response.data.data);
    
-    return response.data; // Exemple : { credits: 100 }
+    return response.data; 
   } catch (error) {
     console.error(
       "Erreur récupération crédits 1Confirmed:",
@@ -23,7 +23,6 @@ export const fetchCredits1Confirmed = async () => {
   }
 };
 
-// Helper to format phone number
 const formatPhoneNumber = (phone) => {
   const digits = phone.replace(/\D/g, "");
   // console.log({digits});
@@ -41,7 +40,6 @@ const formatPhoneNumber = (phone) => {
 
 
 export const sendMessage1Confirmed = async (payload) => {
-  // Validate required fields
   if (!payload.template_account_flow_id) {
     throw new Error("template_account_flow_id is required");
   }
@@ -54,12 +52,11 @@ export const sendMessage1Confirmed = async (payload) => {
     throw new Error("recipient phone number (to) is required");
   }
 console.log({phoneNumber :formatPhoneNumber(payload.phone)})
-  // Format the payload
   const formattedPayload = {
     ...payload,
     phone: formatPhoneNumber(payload.phone),
     template_account_flow_id: parseInt(payload.template_account_flow_id),
-    language_id: parseInt(payload.language_id || 1), // default to language ID 1 if not specified
+    language_id: parseInt(payload.language_id || 1), 
   };
 
   try {

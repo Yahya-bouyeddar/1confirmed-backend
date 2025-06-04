@@ -3,7 +3,7 @@ import { getLanguages, updateUserLanguage } from "../controllers/language.contro
 import { protect } from "../middlewares/auth.js";
 const router = express.Router();
 
-router.get("/", getLanguages); // ✅ public
-router.put("/select", protect, updateUserLanguage); // ✅ privé
+router.get("/", getLanguages); 
+router.put("/select", protect, updateUserLanguage); 
 
 export default router;

@@ -18,9 +18,8 @@ const app = express();
 //   credentials: true,               // permettre les cookies / tokens
 // }));
 app.use(cors())
-app.use(express.json()); // Pour lire les données JSON envoyées dans les requêtes
+app.use(express.json()); 
 
-// 🛣️ Routes de l'API (on les ajoutera bientôt ici)
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/clients", clientRoutes);
@@ -30,7 +29,6 @@ app.use('/api/credits', creditRoutes);
 app.use("/api/languages", languageRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
-// 🔧 Route de test pour voir si le serveur fonctionne
 app.get("/", (req, res) => {
   res.send("✅ API ImmoConnect backend est en ligne !");
 });

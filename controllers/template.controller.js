@@ -2,11 +2,7 @@
 
 import { fetchTemplates1Confirmed } from "../services/confirmedApi.js";
 
-/**
- * 📄 Récupérer les templates disponibles sur 1Confirmed
- * Requête protégée par token JWT
- * Le token 1Confirmed doit être transmis dans l'en-tête : x-confirmed-token
- */
+
 // export const getTemplates = async (req, res) => {
 //   try {
 //     const confirmedToken = req.user.confirmedToken;
@@ -30,7 +26,7 @@ import { fetchTemplates1Confirmed } from "../services/confirmedApi.js";
 export const getTemplates = async (req, res) => {
   try {
     const templates = await fetchTemplates1Confirmed(req.user.languageId);
-    console.dir(templates.data[0], { depth: null });// ⬅️ Ajoute ceci pour voir les vrais ID
+    console.dir(templates.data[0], { depth: null });
     
     res.status(200).json(templates);
   } catch (error) {

@@ -1,9 +1,7 @@
-// controllers/credits.controller.js
 import { PrismaClient } from '@prisma/client';
 import { fetchCredits1Confirmed } from '../services/confirmedApi.js';
 const prisma = new PrismaClient();
 
-// 🟢 GET /api/credits
 export const getCredits = async (req, res) => {
   try {
     const data = await fetchCredits1Confirmed();
@@ -14,7 +12,6 @@ export const getCredits = async (req, res) => {
   }
 };
 
-// 🟢 GET /api/credits/history
 export const getCreditsHistory = async (req, res) => {
   const userId = req.user.id;
 

@@ -5,14 +5,12 @@ const formatPhoneNumber = (phone) => {
 
   if (!digits.startsWith('+212')) {
     if (digits.startsWith('0')) {
-      // Remove leading zero
       return `+212${digits.slice(1)}`;
     }
     return `+212${digits}`;
   }
   return digits;
 };
-// ➕ Ajouter un client
 export const createClient = async (req, res) => {
   const { name, phone,email, notes } = req.body;
   const userId = req.user.id;
@@ -41,7 +39,6 @@ export const createClient = async (req, res) => {
   }
 };
 
-// 📋 Voir tous les clients de l’utilisateur connecté
 export const getClients = async (req, res) => {
   const userId = req.user.id;
 
@@ -58,7 +55,6 @@ export const getClients = async (req, res) => {
   }
 };
 
-// ✏️ Modifier un client
 export const updateClient = async (req, res) => {
   const { id } = req.params;
   const { name, phone, notes } = req.body;
@@ -80,7 +76,6 @@ export const updateClient = async (req, res) => {
   }
 };
 
-// ❌ Supprimer un client
 export const deleteClient = async (req, res) => {
   const { id } = req.params;
 

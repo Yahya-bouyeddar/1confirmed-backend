@@ -1,4 +1,3 @@
-// controllers/message.controller.js
 import { PrismaClient } from "@prisma/client";
 import {
   sendMessage1Confirmed,

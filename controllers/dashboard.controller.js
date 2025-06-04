@@ -1,4 +1,3 @@
-// import prisma from "../lib/prisma.js";
 import axios from "axios";
 import { PrismaClient } from '@prisma/client';
 
